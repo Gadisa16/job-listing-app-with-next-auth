@@ -2,9 +2,8 @@
 import React, { useState } from 'react'
 import { useForm } from "react-hook-form";
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { FadeLoader } from 'react-spinners';
+import {redirect, useRouter } from 'next/navigation';
+import {signIn, useSession } from 'next-auth/react';
 
 
 type SigninFormType = {
@@ -14,51 +13,32 @@ type SigninFormType = {
 
 const SignIn = () => {
     const session = useSession();
-    const { register, handleSubmit, formState:{errors}} = useForm<SigninFormType>();
+    const form = useForm<SigninFormType>();
+    const { register, handleSubmit, formState} = form;
+    const { errors } = formState;
 
-    const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const router = useRouter();
 
     if (session.data){
-        router.push('/');
+        // redirect('/');
+        router.push("/")
     }
 
     const onSubmit = async (data: SigninFormType) => {
-        setLoading(true);
-        setErrorMessage('');
+        const result = await signIn("credentials", {
+            redirect: false,
+            email: data.email,
+            password: data.password,
+        });
 
-        try {
-            const response = await fetch('https://akil-backend.onrender.com/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
-
-            const result = await response.json(); // Parse the JSON response
-
-            if (response.ok && result.success) {
-                await router.push(`/`); // Await the push to ensure it completes
-                return null;
-            } else {
-                setErrorMessage(result.message || "Invalid credentials!");
-            }
-            } catch (error) {
-                setErrorMessage("An error occurred. Please try again later.");
-            } finally {
-                setLoading(false);
-            }
+        if (result?.ok) {
+            router.push("/");
+        } else {
+            result?.status == 401 ? setErrorMessage( "Incorrect password") : 
+            console.log(result);
+        }
     };
-
-    if (loading) {
-        return  (<FadeLoader
-        color="#26A4FF"
-        cssOverride={{margin:"13% auto"}}
-        />)
-    }
-
 
 return (
 <div className='flex justify-end'>
