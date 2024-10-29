@@ -1,77 +1,52 @@
 'use client';
-import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 // import data from '../../../public/jobs.json';
 import AddTaskOutlinedIcon from '@mui/icons-material/AddTaskOutlined';
+import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
 import FmdGoodOutlinedIcon from '@mui/icons-material/FmdGoodOutlined';
 import MoreTimeOutlinedIcon from '@mui/icons-material/MoreTimeOutlined';
 import TimerOffOutlinedIcon from '@mui/icons-material/TimerOffOutlined';
 import TodayOutlinedIcon from '@mui/icons-material/TodayOutlined';
-import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
+import { useSession } from 'next-auth/react';
+import { useRouter } from "next/navigation";
 import { FadeLoader } from 'react-spinners';
-
-interface Job {
-  id: string;
-  title: string;
-  description: string;
-  responsibilities: string;
-  requirements: string;
-  idealCandidate: string;
-  categories: string[];
-  opType: string;
-  startDate: string;
-  endDate: string;
-  deadline: string;
-  location: string[];
-  requiredSkills: string[];
-  whenAndWhere: string;
-  orgID: string;
-  datePosted: string;
-  status: string;
-  applicantsCount: number;
-  viewsCount: number;
-  orgName: string;
-  logoUrl: string;
-  isBookmarked: boolean;
-  isRolling: boolean;
-  questions: string[] | null;
-  perksAndBenefits: string[] | null;
-  createdAt: string;
-  updatedAt: string;
-  orgPrimaryPhone: string;
-  orgEmail: string;
-  average_rating: number;
-  total_reviews: number;
-}
+import jobDataTypes from '../../../components/types/job_types';
+import { useGetSingleJobQuery } from "../../service/getApi"
 
 interface JobsResponse {
   success: boolean;
   message: string;
-  data: Job[];
+  data: jobDataTypes[];
 }
 
 
-function Description() {
-  const searchParams = useSearchParams();
-  const id = searchParams.get('id');
+function Description({params}:{params: {id: string}}) {
+  // const searchParams = useSearchParams();
+  // const id = searchParams.get('id');
+  const router = useRouter();
+  const { data:session, status } = useSession();
+  const { data, error, isLoading } = useGetSingleJobQuery(params.id)
+  const job = data?.data
   
-  const [job, setJob] = useState<Job | null>(null);
-
   useEffect(() => {
-    if (id) {
-      fetch(`https://akil-backend.onrender.com/opportunities/${id}`)
-        .then(response => response.json())
-        .then(data => setJob(data.data)) // Assuming the job data is in `data.data`
-        .catch(error => console.error('Error fetching job:', error));
+    if (status === 'unauthenticated') {
+      router.push('/login');
     }
-  }, [id]);
+  }, [status, router])
+  
+  // const [job, setJob] = useState<jobDataTypes | null>(null);
 
-  if (!job) {
-    return <FadeLoader
-  color="#26A4FF"
-  cssOverride={{margin:"13% auto"}}
-/>;
-  }
+  // useEffect(() => {
+  //   if (id) {
+  //     fetch(`https://akil-backend.onrender.com/opportunities/${id}`)
+  //       .then(response => response.json())
+  //       .then(data => setJob(data.data)) // Assuming the job data is in `data.data`
+  //       .catch(error => console.error('Error fetching job:', error));
+  //   }
+  // }, [id]);
+
+  if (isLoading) { return <FadeLoader color="#26A4FF" cssOverride={{margin:"13% auto"}}/>; }
 
   return (
     <div className='pt-2 md:pt-10 pl-3 md:pl-10 block md:flex'>
@@ -80,14 +55,14 @@ function Description() {
       <div className="w-[100%] md-w-[80%] p-[46px_0px]">
         <div>
           <p className="text-[#25324B] font-poppins text-[24px] font-black leading-[28.8px] text-left pb-5">Description</p>
-          <p className="text-[#25324B] font-epilogue text-[16px] font-normal leading-[25.6px] text-left">{job.description}</p>
+          <p className="text-[#25324B] font-epilogue text-[16px] font-normal leading-[25.6px] text-left">{job?.description}</p>
         </div>
 
         {/* responsibilities */}
         <div className='my-10'>
           <p className="text-[#25324B] font-poppins text-[24px] font-black leading-[28.8px] text-left pb-5">Responsibilities</p>
           <ul className="text-[#25324B] font-epilogue text-[16px] font-normal leading-[28px] text-left">
-            <li><AddTaskOutlinedIcon className="w-[16px] mr-2 text-[#56CDAD]"/>{job.responsibilities}</li>
+            <li><AddTaskOutlinedIcon className="w-[16px] mr-2 text-[#56CDAD]"/>{job?.responsibilities}</li>
           </ul>
         </div>
 
@@ -98,14 +73,14 @@ function Description() {
           <ul className="list-disc ml-4 font-epilogue text-[16px] font-[550] leading-[25.6px] text-left">
             {/* <li>In range of {job?.ideal_candidate?.age} age {job.ideal_candidate.gender} gender, {job.title} </li> */}
 
-            <li>{job.idealCandidate}</li>
+            <li>{job?.idealCandidate}</li>
           </ul>
           </div>
 
         {/* when and where */}
         <div className="mt-10">
           <p className="text-[#25324B] font-poppins text-[24px] font-black leading-[28.8px] text-left pb-5">When and Where</p>
-          <p className="text-[#25324B] font-epilogue text-[16px] font-normal leading-[25.6px] text-left"><FmdGoodOutlinedIcon className='w-[45px] h-[45px] p-[1px] rounded-[50px] border mr-3 text-[#26A4FF]'/>{job.whenAndWhere}</p>
+          <p className="text-[#25324B] font-epilogue text-[16px] font-normal leading-[25.6px] text-left"><FmdGoodOutlinedIcon className='w-[45px] h-[45px] p-[1px] rounded-[50px] border mr-3 text-[#26A4FF]'/>{job?.whenAndWhere}</p>
         </div>
         
         
@@ -122,7 +97,7 @@ function Description() {
 
           <div className=''>
             <p className="font-epilogue text-[16px] font-normal leading-[25.6px] text-left text-[#515B6F]">Posted on</p>
-            <p className="text-[#25324B] font-epilogue text-[16px] font-semibold leading-[25.6px] text-left">{job.datePosted}</p>
+            <p className="text-[#25324B] font-epilogue text-[16px] font-semibold leading-[25.6px] text-left">{job?.datePosted ? new Date(job.datePosted).toLocaleString() : "N/A"}</p>
           </div>
         </div>
 
@@ -132,7 +107,7 @@ function Description() {
 
           <div className=''>
             <p className="font-epilogue text-[16px] font-normal leading-[25.6px] text-left text-[#515B6F]">Deadline</p>
-            <p className="text-[#25324B] font-epilogue text-[16px] font-semibold leading-[25.6px] text-left">{job.deadline}</p>
+            <p className="text-[#25324B] font-epilogue text-[16px] font-semibold leading-[25.6px] text-left">{job?.deadline ? new Date(job.deadline).toLocaleString() : "N/A"}</p>
           </div>
         </div>
 
@@ -142,7 +117,7 @@ function Description() {
 
           <div className=''>
             <p className="font-epilogue text-[16px] font-normal leading-[25.6px] text-left text-[#515B6F]">Location</p>
-            <p className="text-[#25324B] font-epilogue text-[13px] font-semibold text-left">{job.location}</p>
+            <p className="text-[#25324B] font-epilogue text-[13px] font-semibold text-left">{job?.location}</p>
           </div>
         </div>
 
@@ -152,7 +127,7 @@ function Description() {
 
           <div className=''>
             <p className="font-epilogue text-[16px] font-normal leading-[25.6px] text-left text-[#515B6F]">Start Date</p>
-            <p className="text-[#25324B] font-epilogue text-[16px] font-semibold leading-[25.6px] text-left">{job.startDate}</p>
+            <p className="text-[#25324B] font-epilogue text-[16px] font-semibold leading-[25.6px] text-left">{job?.startDate ? new Date(job?.startDate).toLocaleString() : "N/A"}</p>
           </div>
         </div>
 
@@ -162,7 +137,7 @@ function Description() {
 
           <div className=''>
             <p className="font-epilogue text-[16px] font-normal leading-[25.6px] text-left text-[#515B6F]">End Date</p>
-            <p className="text-[#25324B] font-epilogue text-[16px] font-semibold leading-[25.6px] text-left">{job.endDate}</p>
+            <p className="text-[#25324B] font-epilogue text-[16px] font-semibold leading-[25.6px] text-left">{job?.endDate ? new Date(job?.endDate).toLocaleString() : "N/A"}</p>
           </div>
         </div>
 
@@ -172,7 +147,7 @@ function Description() {
             <p className="text-[#25324B] font-poppins text-[24px] font-black leading-[28.8px] text-left mb-5">Categories</p>
             <div className="flex flex-wrap gap-3">
               <ul className="flex flex-wrap gap-3 list-none p-0 m-0">
-                {job.categories.map((cat, index) => (
+                {job?.categories.map((cat, index) => (
                   <li
                     key={index}
                     className="text-[12px] px-3 py-1 bg-[#EB85331A] text-[#FFB836] border border-purpose rounded btn"
@@ -190,7 +165,7 @@ function Description() {
             <p className="text-[#25324B] font-poppins text-[24px] font-black leading-[28.8px] text-left mb-5">Required Skills</p>
             <div className="flex flex-wrap gap-3">
               <ul className="flex flex-wrap gap-3 list-none p-0 m-0">
-                {job.requiredSkills.map((skill, index) => (
+                {job?.requiredSkills.map((skill, index) => (
                   <li
                     key={index}
                     className="text-[12px] px-3 py-1 bg-[#F8F8FD] text-[#4640DE] border border-purpose rounded btn"

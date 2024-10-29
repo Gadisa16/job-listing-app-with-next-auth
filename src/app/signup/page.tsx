@@ -48,9 +48,6 @@ const page = () => {
         try{
             const res = await signUp({...user, "role": "member"})
             const { data } = res;
-            console.log(data)
-            console.log(res)
-            // console.log(data.message)
 
             if (data.message === "Successfully sent OTP"){
                 router.push(`/verify-email?email=${user.email}`)

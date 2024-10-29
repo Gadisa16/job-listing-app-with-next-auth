@@ -2,7 +2,7 @@
 import React, { useState } from 'react'
 import { useForm } from "react-hook-form";
 import Link from 'next/link';
-import {redirect, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {signIn, useSession } from 'next-auth/react';
 
 
@@ -12,32 +12,39 @@ type SigninFormType = {
 }
 
 const SignIn = () => {
-    const session = useSession();
+    const { data:session, status} = useSession();
     const form = useForm<SigninFormType>();
     const { register, handleSubmit, formState} = form;
     const { errors } = formState;
-
-    const [errorMessage, setErrorMessage] = useState('');
+    const [isLoading, setLoading] = useState<boolean>(false)
+    const [errorMessage, setErrorMessage] = useState<string>('');
     const router = useRouter();
-
-    if (session.data){
-        // redirect('/');
+    
+    const token: any = session?.user?.accessToken
+    // console.log(token)
+    if (token) {
         router.push("/")
+        return
     }
 
     const onSubmit = async (data: SigninFormType) => {
+        setLoading(true)
         const result = await signIn("credentials", {
             redirect: false,
             email: data.email,
             password: data.password,
         });
-
+        console.log(result)
         if (result?.ok) {
+            sessionStorage.setItem('accessToken', token);
             router.push("/");
-        } else {
-            result?.status == 401 ? setErrorMessage( "Incorrect password") : 
-            console.log(result);
+        } else if(result?.status == 401) {
+            setErrorMessage("Invalid email or password");
         }
+        else{
+            setErrorMessage("Something went wrong, please try again");
+        }
+        setLoading(false)
     };
 
 return (
@@ -74,7 +81,7 @@ return (
     </div>
 
     <button type='submit' className='w-full py-4 text-white epi rounded-full bg-indigo-900'>
-        Login
+        {isLoading ? "wait..." : "Login"}
     </button>
     <h2 className='text-base epi'>
         Don't have an account? <Link href={`/signup`}><span className='font-semibold ml-1 text-base text-blue-900'>Sign Up</span></Link>
@@ -85,5 +92,3 @@ return (
 }
 
 export default SignIn
-
-
