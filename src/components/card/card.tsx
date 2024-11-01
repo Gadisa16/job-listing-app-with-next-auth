@@ -106,7 +106,7 @@ function Card() {
             }}
             key={job.id}
             className="w-[95%] md:w-[80%] md:mx-auto my-10 py-6 rounded-[30px] md:border-[1px] border-customGray md:flex justify-around">
-            <div>
+            <div data-testid={`job-card-${job.id}`}>
               {job.logoUrl ? (
                 <Image src={job.logoUrl} alt="Company Logo" width={66} height={59} className="w-[66px] h-[59px]" />
               ) : (

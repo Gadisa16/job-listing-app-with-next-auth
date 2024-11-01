@@ -59,6 +59,9 @@ Create a .env.local file in the root directory and add the following:
 # sign-in page
  ![sign-in](./public/images/signin.png)
 
+# testing
+ ![testing](./public/images/testing1.png)
+
 
 
 ## API Endpoints Used
